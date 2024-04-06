@@ -1,0 +1,59 @@
+[project]
+name = "ezrest"
+dynamic = ["version"]
+requires-python = ">=3.8"
+description = "Modular Python framework for implementing REST API clients"
+readme = {file = "docs/README.md", content-type = "text/markdown"}
+license = {file = "LICENSE"}
+authors = [{name = "Jacek Lewański"}]
+keywords = ["rest", "api", "client", "framework", "ezrest"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development",
+    "Typing :: Typed"
+]
+
+[project.urls]
+Homepage = "https://github.com/nullJaX/ezrest"
+Documentation = "https://nullJaX.github.io/ezrest"
+Issues = "https://github.com/nullJaX/ezrest/issues"
+"Release notes" = "https://github.com/nullJaX/ezrest/releases"
+
+[project.optional-dependencies]
+dev = ["build", "httpx", "pytest", "pytest-asyncio", "pytest-cov", "ruff", "twine"]
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 61.0"]
+
+[tool.setuptools]
+packages = ["ezrest"]
+
+[tool.setuptools.dynamic]
+version = {attr = "ezrest.__version__"}
+
+[tool.coverage.report]
+exclude_lines = ["pass"]
+fail_under = 90
+show_missing = true
+skip_covered = true
+skip_empty = true
+
+[tool.coverage.run]
+branch = true
+data_file = "build/.coverage"
+omit = ["*/__init__.py"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=ezrest --cov-report=term"
+testpaths = ["tests"]
+
+[tool.ruff]
+required-version = ">=0.3.5"
+
+[tool.ruff.format]
+skip-magic-trailing-comma = true
