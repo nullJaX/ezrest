@@ -22,14 +22,14 @@ pip install ezrest
 pip install ezrest==0.1.0
 ```
 
-## Usage
+## Usage <!-- {docsify-ignore} -->
 
-Please refer to the [documentation pages](https://nullJaX.github.io/ezrest) on how to use this module.
+Please refer to the [documentation pages](https://nullJaX.github.io/ezrest/#/modules) on how to use this module.
 
 ## Contributing
 
 All forms of contribution are welcome. If you have ideas for new features, improvements or bug fixes, please [open an issue](https://github.com/nullJaX/ezrest/issues) or [submit a pull request on GitHub](https://github.com/nullJaX/ezrest/pulls).
 
-## License
+## License <!-- {docsify-ignore} -->
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](https://github.com/nullJaX/ezrest/blob/master/LICENSE).
