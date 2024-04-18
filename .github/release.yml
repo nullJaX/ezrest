@@ -1,0 +1,15 @@
+changelog:
+  exclude:
+    labels: [ci, refactor, test]
+    authors: []
+  categories:
+    - title: ':hammer: Build system & dependencies'
+      labels: [build]
+    - title: ':books: Documentation updates'
+      labels: [docs]
+    - title: ':sparkles: Features'
+      labels: [feat]
+    - title: ':ambulance: Bug fixes'
+      labels: [fix]
+    - title: ':fire_engine: Reverts'
+      labels: [revert]
