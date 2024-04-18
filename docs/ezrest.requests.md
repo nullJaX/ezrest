@@ -46,7 +46,7 @@ async for user in connector.list(URL):
 
 *Dynamic URL generation*
 
-These classes allow for generating endpoint URLs dynamically without hardcoding endpoint suffixes and use [`Connector`/`AsyncConnector`](#connector--asyncconnector) instance to perform requests.
+These classes allow for generating endpoint URLs dynamically without hardcoding endpoint suffixes and use [`Connector`/`AsyncConnector`](#connector-asyncconnector) instance to perform requests.
 
 There is no significant difference between synchronous and asynchronous versions of these classes other than the naming. Each example below will generate a copy of the original endpoint instance with modified URL, but the connector instance will remain shared between the original and copied instances. On each endpoint instance one can call methods implemented in the connector. **Note, however, that these methods don't accept URL as the first argument, it is automatically injected.** The rest of the arguments are passed through without any modifications.
 
