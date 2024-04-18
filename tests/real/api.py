@@ -4,6 +4,9 @@ from ezrest.requests import AsyncConnector, AsyncEndpoint, Connector, Endpoint
 
 JSONType = Dict[str, Any]
 
+# The service used in the tests is documented here:
+# https://reqres.in/
+
 
 class ReqResConnector(Connector[JSONType]):
     client: Client
