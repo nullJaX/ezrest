@@ -10,6 +10,7 @@ eggs/
 .eggs/
 *.egg-info/
 *.egg
+.python-version
 MANIFEST
 # Unit test / coverage reports
 .coverage
