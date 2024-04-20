@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Generic, Iterator, TypeVar
+from typing import Any, AsyncIterator, Generic, Iterator, TypeVar, Union
 from urllib.parse import urlparse, urlunparse
 
 # Represents the type of the REST API response
@@ -126,14 +126,15 @@ class AsyncConnector(Generic[_ResponseType]):
                 next_url = response.get("next")
         """
         raise NotImplementedError()
+        yield None  # supresses mypy error
 
 
 # Types that unify synchronous and asynchronous connector usage in
 # BaseEndpoint class.
-_ConnectorType = TypeVar("_ConnectorType", AsyncConnector, Connector)
+_ConnectorType = TypeVar("_ConnectorType", bound=Union[AsyncConnector, Connector])
 
 
-class BaseEndpoint(Generic[_ConnectorType]):
+class BaseEndpoint(Generic[_ConnectorType, _ResponseType]):
     """
     (Async)Endpoint [Builder]
 
@@ -157,7 +158,7 @@ class BaseEndpoint(Generic[_ConnectorType]):
 
     connector = Connector[Dict[str, Any]] ()
 
-    api_root = Endpoint(base_url, connector)
+    api_root = Endpoint[Dict[str, Any]](base_url, connector)
 
     api_root                # http://x.com/
     api_root.posts          # http://x.com/posts
@@ -191,7 +192,7 @@ class BaseEndpoint(Generic[_ConnectorType]):
             parsed_url._replace(path=path, params="", query="", fragment="")
         )
 
-    def _generate_endpoint(self, name: str):
+    def _generate_endpoint(self, name: Any):
         """
         Creates new endpoint object (for subresources) with:
         - the same type as the parent endpoint object
@@ -200,7 +201,7 @@ class BaseEndpoint(Generic[_ConnectorType]):
         """
         return type(self)(self._get_sub_resource_url(name), self.connector)
 
-    def _get_sub_resource_url(self, name: str) -> str:
+    def _get_sub_resource_url(self, name: Any) -> str:
         """
         Generates new URL with the name of the resource appended at the end
         """
@@ -234,12 +235,18 @@ class BaseEndpoint(Generic[_ConnectorType]):
 
 
 # Type aliases that are more convenient to use.
-# If the response type is Dict[str, Any] ,
-# then you can define them like this:
+# If the response type is Dict[str, Any],
+# instantiation will look like this:
 #
-# class MyEndpoint(Endpoint[Dict[str, Any]])
-# OR
-# class MyAsyncEndpoint(AsyncEndpoint[Dict[str, Any]])
+# endpoint = endpoint = Endpoint[Dict[str, Any]](url, Connector())
+# async_endpoint = AsyncEndpoint[Dict[str, Any]](url, AsyncConnector())
 #
-Endpoint = BaseEndpoint[Connector[_ResponseType]]
-AsyncEndpoint = BaseEndpoint[AsyncConnector[_ResponseType]]
+# and inheritance will look like this:
+#
+# class MyEndpoint(Endpoint[Dict[str, Any]]):
+#     ...
+# class MyAsyncEndpoint(AsyncEndpoint[Dict[str, Any]]):
+#     ...
+#
+Endpoint = BaseEndpoint[Connector[_ResponseType], _ResponseType]
+AsyncEndpoint = BaseEndpoint[AsyncConnector[_ResponseType], _ResponseType]
