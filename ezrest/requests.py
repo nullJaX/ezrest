@@ -126,7 +126,7 @@ class AsyncConnector(Generic[_ResponseType]):
                 next_url = response.get("next")
         """
         raise NotImplementedError()
-        yield None  # supresses mypy error
+        yield None  # pragma: no cover # supresses mypy error
 
 
 # Types that unify synchronous and asynchronous connector usage in

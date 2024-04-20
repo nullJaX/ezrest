@@ -37,7 +37,7 @@ packages = ["ezrest"]
 version = {attr = "ezrest.__version__"}
 
 [tool.coverage.report]
-exclude_lines = ["pass"]
+exclude_also = ["pass"]
 fail_under = 90
 show_missing = true
 skip_covered = true
