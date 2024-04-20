@@ -17,6 +17,8 @@ for version in ${PYTHONS[@]}; do
   read -p "Press any key to resume ..."
   # INSTALL BUILD & TEST DEPS
   pip install -e .[dev]
+  # MYPY
+  mypy ezrest/
   # LINT
   ruff format --check
   ruff check

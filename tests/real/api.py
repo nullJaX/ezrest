@@ -3,6 +3,7 @@ from httpx import AsyncClient, Client
 from ezrest.requests import AsyncConnector, AsyncEndpoint, Connector, Endpoint
 
 JSONType = Dict[str, Any]
+OptionalJSONType = Optional[JSONType]
 
 # The service used in the tests is documented here:
 # https://reqres.in/
@@ -14,18 +15,20 @@ class ReqResConnector(Connector[JSONType]):
     def __init__(self) -> None:
         self.client = Client()
 
-    def _data_request(self, method: str, url: str, data: JSONType = None) -> JSONType:
+    def _data_request(
+        self, method: str, url: str, data: OptionalJSONType = None
+    ) -> JSONType:
         response = getattr(self.client, method)(url, data=data)
         response.raise_for_status()
         return response.json()
 
-    def post(self, url: str, data: JSONType = None) -> JSONType:
+    def post(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return self._data_request("post", url, data=data)
 
-    def put(self, url: str, data: JSONType = None) -> JSONType:
+    def put(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return self._data_request("put", url, data=data)
 
-    def patch(self, url: str, data: JSONType = None) -> JSONType:
+    def patch(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return self._data_request("patch", url, data=data)
 
     def delete(self, url: str) -> JSONType:
@@ -61,19 +64,19 @@ class AsyncReqResConnector(AsyncConnector[JSONType]):
         self.client = AsyncClient()
 
     async def _data_request(
-        self, method: str, url: str, data: JSONType = None
+        self, method: str, url: str, data: OptionalJSONType = None
     ) -> JSONType:
         response = await getattr(self.client, method)(url, data=data)
         response.raise_for_status()
         return response.json()
 
-    async def post(self, url: str, data: JSONType = None) -> JSONType:
+    async def post(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return await self._data_request("post", url, data=data)
 
-    async def put(self, url: str, data: JSONType = None) -> JSONType:
+    async def put(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return await self._data_request("put", url, data=data)
 
-    async def patch(self, url: str, data: JSONType = None) -> JSONType:
+    async def patch(self, url: str, data: OptionalJSONType = None) -> JSONType:
         return await self._data_request("patch", url, data=data)
 
     async def delete(self, url: str) -> JSONType:
@@ -81,14 +84,14 @@ class AsyncReqResConnector(AsyncConnector[JSONType]):
         response.raise_for_status()
         return {"code": response.status_code}
 
-    async def get(self, url: str, params: Dict[str, Any] = None) -> JSONType:
+    async def get(self, url: str, params: Optional[Dict[str, Any]] = None) -> JSONType:
         params = params or {}
         response = await self.client.get(url, params=params)
         response.raise_for_status()
         return response.json()
 
     async def list(
-        self, url: str, params: Dict[str, Any] = None
+        self, url: str, params: Optional[Dict[str, Any]] = None
     ) -> AsyncIterator[JSONType]:
         params = params or {}
         page: int = int(params.get("page", 0))

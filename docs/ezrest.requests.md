@@ -55,7 +55,7 @@ There is no significant difference between synchronous and asynchronous versions
 ```python
 BASE_URL = "http://x.com/"
 connector = Connector[Dict[str, Any]]()
-api_root = Endpoint(BASE_URL, connector)
+api_root = Endpoint[Dict[str, Any]](BASE_URL, connector)
 
 api_root                # URL: http://x.com/
 api_root.posts          # URL: http://x.com/posts

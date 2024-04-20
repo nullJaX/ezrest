@@ -22,10 +22,15 @@ class TestConnector:
             "headers": {"Content-Type": "application/json"},
             "params": {"q": "some_param"},
         }
-        async_connector = AsyncConnector()
-        connector = Connector()
+        async_connector: AsyncConnector = AsyncConnector()
+        connector: Connector = Connector()
         with pytest.raises(NotImplementedError):
-            await getattr(async_connector, method)(BASE_URL, **kwargs)
+            call = getattr(async_connector, method)(BASE_URL, **kwargs)
+            if method == "list":
+                async for _ in call:
+                    pass
+            else:
+                await call
         with pytest.raises(NotImplementedError):
             getattr(connector, method)(BASE_URL, **kwargs)
 
@@ -100,14 +105,14 @@ class TestRequestsModule:
                 yield f"[list] {url} {i}"
 
     @pytest.fixture
-    def api(self) -> Endpoint:
-        return Endpoint(BASE_URL, TestRequestsModule.MockedConnector())
+    def api(self) -> Endpoint[str]:
+        return Endpoint[str](BASE_URL, TestRequestsModule.MockedConnector())
 
     @pytest.mark.parametrize("method", ["post", "get", "put", "patch", "delete"])
-    def test_module(self, api: Endpoint, method: str):
+    def test_module(self, api: Endpoint[str], method: str):
         assert getattr(api, method)() == f"[{method}] {api.url}"
 
-    def test_module_list(self, api: Endpoint):
+    def test_module_list(self, api: Endpoint[str]):
         for i, item in enumerate(api.list()):
             assert item == f"[list] {api.url} {i}"
 
@@ -134,22 +139,24 @@ class TestAsyncRequestsModule:
             await asyncio.sleep(0.001)
             return f"[delete] {url}"
 
-        async def list(self, url: str) -> AsyncIterator[str]:
+        async def list(self, url: str, *args, **kwargs) -> AsyncIterator[str]:
             for i in range(3):
                 await asyncio.sleep(0.001)
                 yield f"[list] {url} {i}"
 
     @pytest.fixture
-    def api(self) -> AsyncEndpoint:
-        return AsyncEndpoint(BASE_URL, TestAsyncRequestsModule.MockedAsyncConnector())
+    def api(self) -> AsyncEndpoint[str]:
+        return AsyncEndpoint[str](
+            BASE_URL, TestAsyncRequestsModule.MockedAsyncConnector()
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("method", ["post", "get", "put", "patch", "delete"])
-    async def test_module(self, api: AsyncEndpoint, method: str):
+    async def test_module(self, api: AsyncEndpoint[str], method: str):
         assert await getattr(api, method)() == f"[{method}] {api.url}"
 
     @pytest.mark.asyncio
-    async def test_module_list(self, api: AsyncEndpoint):
+    async def test_module_list(self, api: AsyncEndpoint[str]):
         i = 0
         async for item in api.list():
             assert item == f"[list] {api.url} {i}"
