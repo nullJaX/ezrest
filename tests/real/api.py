@@ -1,5 +1,6 @@
-from typing import Any, AsyncIterator, Dict, Iterator, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, NamedTuple, Optional
 from httpx import AsyncClient, Client
+from ezrest.objects import AsyncCRUD, CRUD
 from ezrest.requests import AsyncConnector, AsyncEndpoint, Connector, Endpoint
 
 JSONType = Dict[str, Any]
@@ -7,6 +8,7 @@ OptionalJSONType = Optional[JSONType]
 
 # The service used in the tests is documented here:
 # https://reqres.in/
+BASE_URL = "https://reqres.in/api"
 
 
 class ReqResConnector(Connector[JSONType]):
@@ -107,3 +109,74 @@ class AsyncReqResConnector(AsyncConnector[JSONType]):
 
 ReqResEndpoint = Endpoint[JSONType]
 AsyncReqResEndpoint = AsyncEndpoint[JSONType]
+
+
+class UnknownResource(NamedTuple):
+    id: int
+    name: str
+    year: int
+    color: str
+    pantone_value: str
+
+    def to_body(self) -> Dict[str, Any]:
+        resource_data = self._asdict()
+        resource_data.pop("id", None)
+        return resource_data
+
+
+class ReqResUnknownResourceCRUD(CRUD[UnknownResource]):
+    endpoint: ReqResEndpoint = ReqResEndpoint(BASE_URL, ReqResConnector()).unknown
+
+    def create(self, resource: UnknownResource) -> UnknownResource:
+        data = self.endpoint.post(data=resource.to_body())
+        return resource._replace(id=int(data["id"]))
+
+    def update(self, resource: UnknownResource, method: str) -> UnknownResource:
+        response = getattr(self.endpoint[resource.id], method)(data=resource.to_body())
+        response.pop("updatedAt", None)
+        response["year"] = int(response["year"])
+        return resource._replace(**response)
+
+    def delete(self, resource: UnknownResource) -> UnknownResource:
+        response = self.endpoint[resource.id].delete()
+        assert response["code"] == 204
+        return resource
+
+    def read(self, resource_id: int) -> UnknownResource:
+        data = self.endpoint[resource_id].get()
+        return UnknownResource(**data["data"])
+
+    def list(self) -> Iterator[UnknownResource]:
+        for resource_data in self.endpoint.list():
+            yield UnknownResource(**resource_data)
+
+
+class AsyncReqResUnknownResourceCRUD(AsyncCRUD[UnknownResource]):
+    endpoint: AsyncReqResEndpoint = AsyncReqResEndpoint(
+        BASE_URL, AsyncReqResConnector()
+    ).unknown
+
+    async def create(self, resource: UnknownResource) -> UnknownResource:
+        data = await self.endpoint.post(data=resource.to_body())
+        return resource._replace(id=int(data["id"]))
+
+    async def update(self, resource: UnknownResource, method: str) -> UnknownResource:
+        response = await getattr(self.endpoint[resource.id], method)(
+            data=resource.to_body()
+        )
+        response.pop("updatedAt", None)
+        response["year"] = int(response["year"])
+        return resource._replace(**response)
+
+    async def delete(self, resource: UnknownResource) -> UnknownResource:
+        response = await self.endpoint[resource.id].delete()
+        assert response["code"] == 204
+        return resource
+
+    async def read(self, resource_id: int) -> UnknownResource:
+        data = await self.endpoint[resource_id].get()
+        return UnknownResource(**data["data"])
+
+    async def list(self) -> AsyncIterator[UnknownResource]:
+        async for resource_data in self.endpoint.list():
+            yield UnknownResource(**resource_data)
