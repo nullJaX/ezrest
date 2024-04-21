@@ -51,7 +51,7 @@ class Connector(Generic[_ResponseType]):
 
     def list(self, url: str, *args, **kwargs) -> Iterator[_ResponseType]:
         """
-        Returns items/resources one-by-one for endpoints returning collections
+        Yields items/resources one-by-one for endpoints returning collections
         and/or paginated responses.
 
         Example:
@@ -112,7 +112,7 @@ class AsyncConnector(Generic[_ResponseType]):
 
     async def list(self, url: str, *args, **kwargs) -> AsyncIterator[_ResponseType]:
         """
-        Returns items/resources one-by-one for endpoints returning collections
+        Yields items/resources one-by-one for endpoints returning collections
         and/or paginated responses.
 
         Example:
