@@ -111,6 +111,8 @@ ReqResEndpoint = Endpoint[JSONType]
 AsyncReqResEndpoint = AsyncEndpoint[JSONType]
 
 
+# UnknownResource definition available here:
+# https://reqres.in/api-docs/
 class UnknownResource(NamedTuple):
     id: int
     name: str

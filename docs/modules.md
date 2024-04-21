@@ -6,3 +6,4 @@
 | --- | --- | --- |
 | [`ezrest.requests`](ezrest.requests.md) | [`Connector`/`AsyncConnector`](ezrest.requests.md#connector-asyncconnector) | Unified HTTP interaction with specific REST API |
 | [`ezrest.requests`](ezrest.requests.md) | [`Endpoint`/`AsyncEndpoint`/`BaseEndpoint`](ezrest.requests.md#endpoint-asyncendpoint-baseendpoint) | Dynamic URL generation |
+| [`ezrest.objects`](ezrest.objects.md) | [`CRUD`/`AsyncCRUD`](ezrest.objects.md#crud-asynccrud) | Object-oriented data access management |
