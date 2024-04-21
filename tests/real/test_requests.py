@@ -3,11 +3,11 @@ import pytest
 from tests.real.api import (
     AsyncReqResConnector,
     AsyncReqResEndpoint,
+    BASE_URL,
     ReqResConnector,
     ReqResEndpoint,
 )
 
-BASE_URL = "https://reqres.in/api"
 USER_FIELDS = {"id", "email", "first_name", "last_name", "avatar"}
 
 
