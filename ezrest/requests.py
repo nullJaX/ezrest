@@ -29,37 +29,37 @@ class Connector(Generic[_ResponseType]):
     possibly with authentication scheme and error handling.
     """
 
-    def post(self, url: str, *args, **kwargs) -> _ResponseType:
+    def post(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP POST request"""
         raise NotImplementedError()
 
-    def get(self, url: str, *args, **kwargs) -> _ResponseType:
+    def get(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP GET request"""
         raise NotImplementedError()
 
-    def put(self, url: str, *args, **kwargs) -> _ResponseType:
+    def put(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP PUT request"""
         raise NotImplementedError()
 
-    def patch(self, url: str, *args, **kwargs) -> _ResponseType:
+    def patch(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP PATCH request"""
         raise NotImplementedError()
 
-    def delete(self, url: str, *args, **kwargs) -> _ResponseType:
+    def delete(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP DELETE request"""
         raise NotImplementedError()
 
-    def list(self, url: str, *args, **kwargs) -> Iterator[_ResponseType]:
+    def list(self, url: str, **kwargs) -> Iterator[_ResponseType]:
         """
         Yields items/resources one-by-one for endpoints returning collections
         and/or paginated responses.
 
         Example:
 
-        def list(self, url: str, *args, **kwargs) -> Iterator[ResponseType]:
+        def list(self, url: str, **kwargs) -> Iterator[ResponseType]:
             next_url: str = url
             while next_url:
-                response = self.get(url, *args, **kwargs).json()
+                response = self.get(url, **kwargs).json()
                 for item in response.get("items", []):
                     yield item
                 next_url = response.get("next")
@@ -90,37 +90,37 @@ class AsyncConnector(Generic[_ResponseType]):
     possibly with authentication scheme and error handling.
     """
 
-    async def post(self, url: str, *args, **kwargs) -> _ResponseType:
+    async def post(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP POST request"""
         raise NotImplementedError()
 
-    async def get(self, url: str, *args, **kwargs) -> _ResponseType:
+    async def get(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP GET request"""
         raise NotImplementedError()
 
-    async def put(self, url: str, *args, **kwargs) -> _ResponseType:
+    async def put(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP PUT request"""
         raise NotImplementedError()
 
-    async def patch(self, url: str, *args, **kwargs) -> _ResponseType:
+    async def patch(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP PATCH request"""
         raise NotImplementedError()
 
-    async def delete(self, url: str, *args, **kwargs) -> _ResponseType:
+    async def delete(self, url: str, **kwargs) -> _ResponseType:
         """Performs HTTP DELETE request"""
         raise NotImplementedError()
 
-    async def list(self, url: str, *args, **kwargs) -> AsyncIterator[_ResponseType]:
+    async def list(self, url: str, **kwargs) -> AsyncIterator[_ResponseType]:
         """
         Yields items/resources one-by-one for endpoints returning collections
         and/or paginated responses.
 
         Example:
 
-        async def list(self, url: str, *args, **kwargs) -> AsyncIterator[ResponseType]:
+        async def list(self, url: str, **kwargs) -> AsyncIterator[ResponseType]:
             next_url: str = url
             while next_url:
-                response = await self.get(url, *args, **kwargs).json()
+                response = await self.get(url, **kwargs).json()
                 for item in response.get("items", []):
                     yield item
                 next_url = response.get("next")
@@ -149,8 +149,11 @@ class BaseEndpoint(Generic[_ConnectorType, _ResponseType]):
     instance will be shared with the newly created (Async)Endpoint. On each
     (Async)Endpoint one can call methods implemented in the (Async)Connector.
     Note, however, that these methods don't accept URL as the first argument,
-    it is automatically injected. The rest of the arguments are passed through
-    without any modifications.
+    it is automatically injected. In case of the endpoints that require multiple
+    identifiers (or other dynamic path contents) to be specified, one can use
+    url_inject positional arguments - the code will use standard str.format()
+    method to inject arguments to the URL before executing the request. The
+    rest of the arguments are passed through without any modifications.
 
     Examples:
 
@@ -160,12 +163,14 @@ class BaseEndpoint(Generic[_ConnectorType, _ResponseType]):
 
     api_root = Endpoint[Dict[str, Any]](base_url, connector)
 
-    api_root                # http://x.com/
-    api_root.posts          # http://x.com/posts
-    api_root.comments[3]    # http://x.com/comments/3
-    api_root["comments"][3] # http://x.com/comments/3
+    api_root                                        # http://x.com/
+    api_root.posts                                  # http://x.com/posts
+    api_root.comments[3]                            # http://x.com/comments/3
+    api_root["comments"][3]                         # http://x.com/comments/3
+    api_root.comments.3                             # Not allowed, 3 is not a string type
 
-    api_root.comments.3     # Not allowed, 3 is not a string type
+    endpoint = api_root.posts["{}"].comments["{}"]  # Prepares URL for injection: http://x.com/posts/{}/comments/{}
+    endpoint.get(5, 3, ...)                         # Performs GET request, injecting 5 and 3 as identifiers: http://x.com/posts/5/comments/3
     """
 
     url: str
@@ -209,29 +214,36 @@ class BaseEndpoint(Generic[_ConnectorType, _ResponseType]):
 
     __getattr__ = __getitem__ = _generate_endpoint
 
-    def post(self, *args, **kwargs):
-        """Executes HTTP POST request via connector"""
-        return self.connector.post(self.url, *args, **kwargs)
+    def _compile_url(self, *url_inject) -> str:
+        return self.url.format(*url_inject)
 
-    def get(self, *args, **kwargs):
-        """Executes HTTP GET request via connector"""
-        return self.connector.get(self.url, *args, **kwargs)
+    def _request(self, method: str, *url_inject, **kwargs):
+        """Executes HTTP request via connector and injects URL arguments"""
+        return getattr(self.connector, method)(self._compile_url(*url_inject), **kwargs)
 
-    def put(self, *args, **kwargs):
-        """Executes HTTP PUT request via connector"""
-        return self.connector.put(self.url, *args, **kwargs)
+    def post(self, *url_inject, **kwargs):
+        """Executes HTTP POST request via connector and injects URL arguments"""
+        return self._request("post", *url_inject, **kwargs)
 
-    def patch(self, *args, **kwargs):
-        """Executes HTTP PATCH request via connector"""
-        return self.connector.patch(self.url, *args, **kwargs)
+    def get(self, *url_inject, **kwargs):
+        """Executes HTTP GET request via connector and injects URL arguments"""
+        return self._request("get", *url_inject, **kwargs)
 
-    def delete(self, *args, **kwargs):
-        """Executes HTTP DELETE request via connector"""
-        return self.connector.delete(self.url, *args, **kwargs)
+    def put(self, *url_inject, **kwargs):
+        """Executes HTTP PUT request via connector and injects URL arguments"""
+        return self._request("put", *url_inject, **kwargs)
 
-    def list(self, *args, **kwargs):
-        """Runs connector's list method to retrieve items one-by-one"""
-        return self.connector.list(self.url, *args, **kwargs)
+    def patch(self, *url_inject, **kwargs):
+        """Executes HTTP PATCH request via connector and injects URL arguments"""
+        return self._request("patch", *url_inject, **kwargs)
+
+    def delete(self, *url_inject, **kwargs):
+        """Executes HTTP DELETE request via connector and injects URL arguments"""
+        return self._request("delete", *url_inject, **kwargs)
+
+    def list(self, *url_inject, **kwargs):
+        """Runs connector's list method to retrieve items one-by-one and injects URL arguments"""
+        return self._request("list", *url_inject, **kwargs)
 
 
 # Type aliases that are more convenient to use.

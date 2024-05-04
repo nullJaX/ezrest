@@ -82,6 +82,19 @@ class TestEndpoint:
         assert new_endpoint.connector == endpoint.connector
         assert new_endpoint.url == expected_url
 
+    def test_compile_url(self):
+        endpoint = BaseEndpoint(BASE_URL, Connector())
+        endpoint = endpoint.posts["{}"].comments["{}"].replies["{}"]
+        expected_url = f"{BASE_URL}/posts/420/comments/69/replies/positive"
+        too_few_arguments = [[], [420], [420, 69]]
+        for arguments in too_few_arguments:
+            with pytest.raises(IndexError):
+                endpoint._compile_url(*arguments)
+        assert expected_url == endpoint._compile_url(420, 69, "positive")
+        assert expected_url == endpoint._compile_url(
+            420, 69, "positive", "additional", None, "args"
+        )
+
 
 class TestRequestsModule:
     class MockedConnector(Connector[str]):
@@ -139,7 +152,7 @@ class TestAsyncRequestsModule:
             await asyncio.sleep(0.001)
             return f"[delete] {url}"
 
-        async def list(self, url: str, *args, **kwargs) -> AsyncIterator[str]:
+        async def list(self, url: str) -> AsyncIterator[str]:
             for i in range(3):
                 await asyncio.sleep(0.001)
                 yield f"[list] {url} {i}"

@@ -31,6 +31,7 @@ class TestReqResRequests:
         user_data = response["data"]
         assert all(field in user_data for field in USER_FIELDS)
         assert response == api["users"][2].get()
+        assert response == api.users["{}"].get(2)
 
     def test_get_user_not_found(self, api: ReqResEndpoint):
         with pytest.raises(HTTPError, match="404 Not Found"):
@@ -81,6 +82,7 @@ class TestAsyncReqResRequests:
         user_data = response["data"]
         assert all(field in user_data for field in USER_FIELDS)
         assert response == await api["users"][2].get()
+        assert response == await api.users["{}"].get(2)
 
     @pytest.mark.asyncio
     async def test_get_user_not_found(self, api: AsyncReqResEndpoint):
