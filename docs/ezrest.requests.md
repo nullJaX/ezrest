@@ -48,7 +48,9 @@ async for user in connector.list(URL):
 
 These classes allow for generating endpoint URLs dynamically without hardcoding endpoint suffixes and use [`Connector`/`AsyncConnector`](#connector-asyncconnector) instance to perform requests.
 
-There is no significant difference between synchronous and asynchronous versions of these classes other than the naming. Each example below will generate a copy of the original endpoint instance with modified URL, but the connector instance will remain shared between the original and copied instances. On each endpoint instance one can call methods implemented in the connector. **Note, however, that these methods don't accept URL as the first argument, it is automatically injected.** The rest of the arguments are passed through without any modifications.
+There is no significant difference between synchronous and asynchronous versions of these classes other than the naming. Each example below will generate a copy of the original endpoint instance with modified URL, but the connector instance will remain shared between the original and copied instances. On each endpoint instance one can call methods implemented in the connector. **Note, however, that these methods don't accept URL as the first argument, it is automatically injected.**
+
+In case of the endpoints that require multiple identifiers (or other dynamic path contents) to be specified, one can use `*url_inject` positional arguments - the code will use standard `str.format()` method to inject arguments to the URL before executing the request. The rest of the arguments are passed through without any modifications.
 
 ### Example
 
@@ -57,11 +59,14 @@ BASE_URL = "http://x.com/"
 connector = Connector[Dict[str, Any]]()
 api_root = Endpoint[Dict[str, Any]](BASE_URL, connector)
 
-api_root                # URL: http://x.com/
-api_root.posts          # URL: http://x.com/posts
-api_root.comments[3]    # URL: http://x.com/comments/3
-api_root["comments"][3] # URL: http://x.com/comments/3
-api_root.comments.3     # Not allowed, 3 is not a string type
+api_root                                        # URL: http://x.com/
+api_root.posts                                  # URL: http://x.com/posts
+api_root.comments[3]                            # URL: http://x.com/comments/3
+api_root["comments"][3]                         # URL: http://x.com/comments/3
+api_root.comments.3                             # Not allowed, 3 is not a string type
+
+endpoint = api_root.posts["{}"].comments["{}"]  # Prepares URL for injection: http://x.com/posts/{}/comments/{}
+endpoint.get(5, 3, ...)                         # Performs GET request, injecting 5 and 3 as identifiers: http://x.com/posts/5/comments/3
 
 # Sending requests:
 for user_3_comment in api_root.comments.list(params={"userId": 3}):
