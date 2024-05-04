@@ -19,7 +19,7 @@
 ```bash
 pip install ezrest
 # Or by providing specific version:
-pip install ezrest==0.2.0
+pip install ezrest==0.3.0
 ```
 
 ## Usage <!-- {docsify-ignore} -->
