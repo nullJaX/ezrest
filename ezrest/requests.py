@@ -149,11 +149,13 @@ class BaseEndpoint(Generic[_ConnectorType, _ResponseType]):
     instance will be shared with the newly created (Async)Endpoint. On each
     (Async)Endpoint one can call methods implemented in the (Async)Connector.
     Note, however, that these methods don't accept URL as the first argument,
-    it is automatically injected. In case of the endpoints that require multiple
-    identifiers (or other dynamic path contents) to be specified, one can use
-    url_inject positional arguments - the code will use standard str.format()
-    method to inject arguments to the URL before executing the request. The
-    rest of the arguments are passed through without any modifications.
+    it is automatically injected.
+
+    In case of the endpoints that require multiple identifiers (or other
+    dynamic path contents) to be specified, one can use url_inject positional
+    arguments - the code will use standard str.format() method to inject
+    arguments to the URL before executing the request. The rest of the
+    arguments are passed through without any modifications.
 
     Examples:
 
